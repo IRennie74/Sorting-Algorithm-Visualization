@@ -8,20 +8,20 @@ on:
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true
-          ref: main
 
-      - name: Configure git
+      - name: Set up git identity
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
-      - name: Push to HuggingFace
+      - name: Push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push https://Rennie44:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization main:main
+          git remote add hf https://__token__:${HF_TOKEN}@huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization
+          git push hf main --force
