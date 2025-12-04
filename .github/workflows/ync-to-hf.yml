@@ -1,1 +1,23 @@
 
+    name: Sync to Hugging Face Space
+
+    on:
+      push:
+        branches:
+          - main # Or your main branch name
+
+    jobs:
+      sync-to-hf:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+            with:
+              fetch-depth: 0 # Fetch all history for proper git operations
+
+          - name: Push to Hugging Face Space
+            env:
+              HF_TOKEN: ${{ secrets.HF_TOKEN }}
+              HF_SPACE_REPO: Rennie44/Sorting-Algorithm-Visualization # Replace with your Hugging Face username and Space name
+            run: |
+              git remote add hf "https://hf_token:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_REPO}"
+              git push hf main --force # Or your main branch name
