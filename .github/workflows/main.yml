@@ -8,18 +8,20 @@ on:
 jobs:
   sync-to-hub:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout main branch
+      - name: Checkout main
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
           lfs: true
-          ref: main    # 👈 THIS IS THE FIX
+          ref: main
 
-      - name: Push to hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Configure git
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git push https://Rennie44:$HF_TOKEN@huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization main:main
+
+      - name: Push to HuggingFace
+        run: |
+          git push https://Rennie44:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization main:main
