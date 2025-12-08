@@ -14,7 +14,7 @@ app_file: app.py
 ### Includes binary search, bubble sort, insertion sort, and selection sort
 
 ## Demo video/gif/screenshot of test
-<video src="assets\screen-capture (1440p).mp4" width="320" height="240" controls></video>
+![Demo](assets/screen-capture.gif)
 
 ## Problem Breakdown & Computational Thinking (You can add a flowchart and write the
 four pillars of computational thinking briefly in bullets)
