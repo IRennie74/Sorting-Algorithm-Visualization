@@ -1,4 +1,6 @@
 import gradio as gr
+
+print(gr.__version__) 
 import time
 import random
 
