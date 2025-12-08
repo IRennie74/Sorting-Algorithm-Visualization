@@ -157,4 +157,4 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_name="0.0.0.0", server_port=None)
