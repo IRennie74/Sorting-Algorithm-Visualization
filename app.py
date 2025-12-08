@@ -1,6 +1,4 @@
 import gradio as gr
-
-print(gr.__version__) 
 import time
 import random
 
@@ -84,6 +82,7 @@ def stream_sort(algo, array_text, speed_ms, search_target, use_random, random_si
 
     # Stream steps one by one
     for i, step in enumerate(steps):
+        # Pause loop
         while is_paused:
             time.sleep(0.05)
         yield render_single_step_html(step, i)
@@ -93,6 +92,19 @@ def stream_sort(algo, array_text, speed_ms, search_target, use_random, random_si
 # GRADIO UI
 # -------------------------------------------------------
 with gr.Blocks(title="Sorting/Searching Visualization") as demo:
+
+    # Inject dark CSS safely for Gradio 4
+    gr.HTML("""
+    <style>
+    body { background-color: #111 !important; color: #e9e9e9 !important; }
+    .gradio-container { background-color: #111 !important; color: #e9e9e9 !important; }
+    h1, h2, h3, p, label, .title { color: #e9e9e9 !important; }
+    input, textarea, select { background-color: #222 !important; color: #e9e9e9 !important; border: 1px solid #444 !important;}
+    button { background-color: #333 !important; border: 1px solid #555 !important; color: #eee !important; }
+    button:hover { background-color: #444 !important; }
+    .output-html, .gr-html { background-color: #111 !important; color: #e9e9e9 !important; border: 1px solid #444 !important; border-radius: 8px; padding: 10px; }
+    </style>
+    """)
 
     gr.Markdown("# 🔍 Algorithm Visualizer (Real-Time + Adjustable Speed)")
     gr.Markdown("Choose an algorithm, enter an array, and watch it animate step by step.")
@@ -126,20 +138,22 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
     )
 
     # Auto-update the array textbox when random mode or size changes
-    def update_array(use_random, size, current_value):
-        if use_random:
+    def update_array(use_random_val, size, current_value):
+        if use_random_val:
             arr = generate_random_array(size)
-            return ", ".join(str(x) for x in arr)
-        return current_value
+            # return an update object to set the value (robust on v4)
+            return gr.update(value=", ".join(str(x) for x in arr))
+        return gr.update(value=current_value)
 
-    use_random.change(update_array, [use_random, random_size, array_input], array_input)
-    random_size.change(update_array, [use_random, random_size, array_input], array_input)
+    # note: inputs and outputs are lists (Gradio 4 style)
+    use_random.change(update_array, inputs=[use_random, random_size, array_input], outputs=[array_input])
+    random_size.change(update_array, inputs=[use_random, random_size, array_input], outputs=[array_input])
 
     # Toggle target visibility for binary search
-    def toggle_target(algo):
-        return gr.update(visible=(algo == "Binary Search"))
+    def toggle_target(algo_value):
+        return gr.update(visible=(algo_value == "Binary Search"))
 
-    algo_dd.change(toggle_target, algo_dd, search_target)
+    algo_dd.change(toggle_target, inputs=[algo_dd], outputs=[search_target])
 
     run_btn = gr.Button("Run Visualization")
 
@@ -147,17 +161,18 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
         pause_btn = gr.Button("Pause")
         resume_btn = gr.Button("Resume")
 
-    pause_btn.click(pause_sort, None, None)
-    resume_btn.click(resume_sort, None, None)
+    pause_btn.click(pause_sort, inputs=None, outputs=None)
+    resume_btn.click(resume_sort, inputs=None, outputs=None)
 
-    output = gr.HTML(label="Visualization")
+    output = gr.HTML(value="", label="Visualization")
 
+    # run_btn must supply inputs and outputs as lists
     run_btn.click(
         stream_sort,
         inputs=[algo_dd, array_input, speed, search_target, use_random, random_size],
-        outputs=output
+        outputs=[output]
     )
 
+# Launch (let HF pick port; server_name required on Spaces)
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=None)
-
