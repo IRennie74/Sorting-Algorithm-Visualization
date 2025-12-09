@@ -1,43 +1,64 @@
-"""
-Insertion sort step-by-step for visualization.
-"""
-
 def insertion_sort_steps(arr):
     steps = []
     a = arr.copy()
 
-    steps.append({"array": a.copy(), "compare": None, "swapped": None, "swapped_indices": None})
+    # Initial state
+    steps.append({
+        "array": a.copy(),
+        "action": "start",
+        "compare": None,
+        "swapped": None,
+        "swapped_indices": None,
+        "key": None
+    })
 
     for i in range(1, len(a)):
         key = a[i]
         j = i - 1
 
         # Show initial comparison (inserting key)
-        steps.append({"array": a.copy(), "compare": (i, j), "swapped": False, "swapped_indices": None})
+        steps.append({
+            "array": a.copy(),
+            "action": "compare",
+            "compare": (i, j),
+            "swapped": False,
+            "swapped_indices": None,
+            "key": key
+        })
 
-        # Move elements one by one
+        moved = False
         while j >= 0 and a[j] > key:
-
-            # Swap-like shift (visualizing the movement)
+            # Shift element right
             a[j + 1] = a[j]
-
+            moved = True
             steps.append({
                 "array": a.copy(),
+                "action": "shift",
                 "compare": (j, j+1),
                 "swapped": True,
-                "swapped_indices": (j, j+1)
+                "swapped_indices": (j, j+1),
+                "key": key
             })
-
             j -= 1
 
         # Insert the key back
         a[j + 1] = key
         steps.append({
             "array": a.copy(),
+            "action": "insert",
             "compare": None,
-            "swapped": True,
-            "swapped_indices": (j+1, i)
+            "swapped": moved,
+            "swapped_indices": (j+1, i) if moved else None,
+            "key": key
         })
 
-    steps.append({"array": a.copy(), "compare": None, "swapped": None, "swapped_indices": None})
+    # Final state
+    steps.append({
+        "array": a.copy(),
+        "action": "done",
+        "compare": None,
+        "swapped": None,
+        "swapped_indices": None,
+        "key": None
+    })
     return steps

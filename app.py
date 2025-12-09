@@ -23,77 +23,106 @@ def resume_sort():
     is_paused = False
 
 # -------------------------------------------------------
-# Helper: parse comma-separated array
+# Sanitized Parsing (HARDENED)
 # -------------------------------------------------------
 def parse_array(text: str):
-    if not text:
+    if not text or text.strip() == "":
         raise ValueError("Input array is empty.")
-    parts = [p.strip() for p in text.split(",")]
+
+    parts = [p.strip() for p in text.split(",") if p.strip() != ""]
+
+    if len(parts) == 0:
+        raise ValueError("No valid numbers found. Enter a comma-separated list like: 4, 6, 1, 8")
+
     arr = []
     for p in parts:
-        if p == "":
-            continue
+        if "." in p:
+            raise ValueError("Floats are not allowed. Only integers are supported.")
         try:
-            arr.append(float(p) if "." in p else int(p))
+            val = int(p)
         except:
             raise ValueError(f"Invalid number: {p}")
-    if len(arr) == 0:
-        raise ValueError("No valid numbers found.")
+
+        if val < 1:
+            raise ValueError("Values must be >= 1 (no negatives or zero).")
+        if val > 999:
+            val = 999  # clamp: safely cap at 999 so bars don’t break CSS
+
+        arr.append(val)
+
     return arr
 
+
 def generate_random_array(n):
+    # Always generate safe values 1–99
     return [random.randint(1, 99) for _ in range(n)]
 
+
 # -------------------------------------------------------
-# Generator for streaming (REAL-TIME updates)
+# STREAM SORT (HARDENED)
 # -------------------------------------------------------
 def stream_sort(algo, array_text, speed_ms, search_target, use_random, random_size):
     global is_paused
     is_paused = False
 
-    # Get array (random or user input)
+    # Force speed into safe range server-side
+    speed_ms = max(30, min(2000, speed_ms))
+    delay = speed_ms / 1000.0
+
+    # Safe array building
     if use_random:
-        arr = generate_random_array(random_size)
+        arr = generate_random_array(max(3, min(200, random_size)))
     else:
         try:
             arr = parse_array(array_text)
         except Exception as e:
-            yield f"<div style='color:red;'>Error: {e}</div>"
+            yield f"<div style='color:red; font-size:18px;'>Error: {e}</div>"
             return
 
-    delay = speed_ms / 1000.0
+    # Binary Search = must sort array
+    if algo == "Binary Search":
+        if search_target is None:
+            yield "<div style='color:red; font-size:18px;'>Binary Search requires a target number.</div>"
+            return
 
-    # Choose algorithm
-    if algo == "Bubble Sort":
+        # Block floats, zero, negative, huge target
+        try:
+            search_target = int(search_target)
+            if search_target < 1:
+                raise ValueError
+        except:
+            yield "<div style='color:red; font-size:18px;'>Binary Search target must be a positive integer.</div>"
+            return
+
+        arr = sorted(arr)  # visual + logical consistency
+        steps = binary_search_steps(arr, search_target)
+
+    # Sorting algorithms
+    elif algo == "Bubble Sort":
         steps = bubble_sort_steps(arr)
     elif algo == "Insertion Sort":
         steps = insertion_sort_steps(arr)
     elif algo == "Selection Sort":
         steps = selection_sort_steps(arr)
-    elif algo == "Binary Search":
-        if search_target is None:
-            yield "<div style='color:red;'>Binary Search needs a target.</div>"
-            return
-        arr_sorted = sorted(arr)
-        steps = binary_search_steps(arr_sorted, search_target)
     else:
         yield "<div style='color:red;'>Unknown algorithm.</div>"
         return
 
-    # Stream steps
+    # Stream steps safely
     for i, step in enumerate(steps):
         while is_paused:
             time.sleep(0.05)
         yield render_single_step_html(step, i)
         time.sleep(delay)
 
+
 # -------------------------------------------------------
-# GRADIO UI (NO DARK THEME)
+# UI
 # -------------------------------------------------------
 with gr.Blocks(title="Sorting/Searching Visualization") as demo:
 
-    gr.Markdown("# 🔍 Algorithm Visualizer (Real-Time + Adjustable Speed)")
-    gr.Markdown("Choose an algorithm, enter an array, and watch it animate step by step.")
+    gr.Markdown("# 🔍 Algorithm Visualizer (Real-Time, Safe & Hardened)")
+    gr.Markdown("Enter only positive integers. Random arrays are auto-sanitized.")
 
     with gr.Row():
         algo_dd = gr.Dropdown(
@@ -110,8 +139,8 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
         )
         speed = gr.Slider(
             label="Speed (ms per step)",
-            minimum=10,
-            maximum=1500,
+            minimum=30,
+            maximum=2000,
             step=10,
             value=300
         )
@@ -123,17 +152,17 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
         visible=False
     )
 
-    # Auto-update the array textbox when random mode or size changes
+    # Auto-update for random mode
     def update_array(use_random_val, size, current_value):
         if use_random_val:
-            arr = generate_random_array(size)
+            arr = generate_random_array(max(3, min(200, size)))
             return gr.update(value=", ".join(str(x) for x in arr))
         return gr.update(value=current_value)
 
     use_random.change(update_array, inputs=[use_random, random_size, array_input], outputs=[array_input])
     random_size.change(update_array, inputs=[use_random, random_size, array_input], outputs=[array_input])
 
-    # Toggle visibility for binary search target
+    # Toggle visibility for Binary Search
     def toggle_target(algo_value):
         return gr.update(visible=(algo_value == "Binary Search"))
 
@@ -156,6 +185,6 @@ with gr.Blocks(title="Sorting/Searching Visualization") as demo:
         outputs=[output]
     )
 
-# Launch (Spaces auto-selects port)
+
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=None)
