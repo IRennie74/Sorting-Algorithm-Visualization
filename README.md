@@ -35,17 +35,17 @@ Includes binary search, bubble sort, insertion sort, and selection sort
 - Capturing each meaningful step of the algorithm
 - Rendering updates so users can visually follow the algorithm’s process
 ## Steps to Run
-Clone the repository
+#### Clone the repository
 - git clone https://github.com/IRennie74/Sorting-Algorithm-Visualization.git
 - cd Sorting-Algorithm-Visualization
-Create a virtual environment (optional but recommended)
+#### Create a virtual environment (optional but recommended)
 - python -m venv venv
 - venv\Scripts\activate
-Install required dependencies
+#### Install required dependencies
 - pip install -r requirements.txt
-Run the application
+#### Run the application
 - python app.py
-Visit the URL printed in the terminal (e.g., http://127.0.0.1:7860/) to use the visualizer.
+#### Visit the URL printed in the terminal (e.g., http://127.0.0.1:7860/) to use the visualizer.
 
 ## Hugging Face Link
 https://huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization
