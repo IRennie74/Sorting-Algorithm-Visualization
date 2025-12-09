@@ -47,6 +47,18 @@ Includes binary search, bubble sort, insertion sort, and selection sort
 - python app.py
 #### Visit the URL printed in the terminal (e.g., http://127.0.0.1:7860/) to use the visualizer.
 
+## Edge Cases
+When trying to break the random integers option of the sort, the program will never break. 
+You can set the random integer to any number and it limits the parameters automatically so it will always have a usable integer.
+
+Every sorting algorithm has a check for empty lists etc.
+
+Safe against non integer values entered into list.
+
+
+
+
+
 ## Hugging Face Link
 https://huggingface.co/spaces/Rennie44/Sorting-Algorithm-Visualization
 ## Author & Acknowledgment
